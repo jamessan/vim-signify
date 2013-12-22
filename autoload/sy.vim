@@ -2,6 +2,11 @@
 
 scriptencoding utf-8
 
+if exists('g:loaded_signify_autoload')
+  finish
+endif
+let g:loaded_signify_autoload = 1
+
 " Init: values {{{1
 let g:signify_sign_overwrite = get(g:, 'signify_sign_overwrite')
 if g:signify_sign_overwrite && (v:version < 703 || (v:version == 703 && !has('patch596')))
@@ -13,6 +18,20 @@ endif
 
 let g:id_top = 0x100
 let g:sy_cache = {}
+
+let s:sy = { 'active': 0, 'type': 'unknown', 'hunks': [], 'stats': [-1, -1, -1] }
+
+function s:sy.New(path, buffer)
+  let newSy = deepcopy(s:sy)
+  let [newSy['path'], newSy['buffer'], newSy['id_top']] = [a:path, a:buffer, g:id_top]
+  return newSy
+endfunction
+
+function s:sy.SignAdd(line)
+endfunction
+
+function s:sy.SignChange(line)
+endfunction
 
 sign define SignifyPlaceholder text=. texthl=SignifySignChange linehl=
 
@@ -31,7 +50,7 @@ function! sy#start(path) abort
 
   " new buffer.. add to list of registered files
   if !exists('b:sy') || b:sy.path != a:path
-    let b:sy = { 'path': a:path, 'buffer': bufnr(''), 'active': 0, 'type': 'unknown', 'hunks': [], 'id_top': g:id_top, 'stats': [-1, -1, -1] }
+    let b:sy = s:sy.New(a:path, bufnr(''))
     if get(g:, 'signify_disable_by_default')
       return
     endif
